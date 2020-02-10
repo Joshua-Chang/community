@@ -8,6 +8,7 @@ import com.example.test.demo.exception.CustomizeErrorCode;
 import com.example.test.demo.model.Comment;
 import com.example.test.demo.model.User;
 import com.example.test.demo.services.CommentService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Controller
+@Slf4j
 public class CommentController {
 
     @Autowired
@@ -46,6 +48,7 @@ public class CommentController {
         comment.setLikeCount(0L);
         comment.setCommentator(user.getId());
         commentService.insert(comment, user);
+        log.error("-------------测试");
         return ResultDTO.okOf();
     }
 
