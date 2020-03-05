@@ -2,6 +2,7 @@ package com.example.test.demo.services;
 
 import com.example.test.demo.dto.PageDTO;
 import com.example.test.demo.dto.QuestionDTO;
+import com.example.test.demo.dto.QuestionQueryDTO;
 import com.example.test.demo.exception.CustomizeErrorCode;
 import com.example.test.demo.exception.CustomizeException;
 import com.example.test.demo.mapper.QuestionExtMapper;
@@ -59,6 +60,54 @@ public class QuestionService {
         pageDTO.setPage(count,page,size);
 
         return pageDTO;
+    }
+    public PageDTO list(String search,Integer page, Integer size) {
+
+        if (StringUtils.isNotBlank(search)) {
+            String[] tags = StringUtils.split(search, " ");
+            search = Arrays.stream(tags).collect(Collectors.joining("|"));
+        }
+
+        PageDTO paginationDTO = new PageDTO();
+
+        Integer totalPage;
+
+        QuestionQueryDTO questionQueryDTO = new QuestionQueryDTO();
+        questionQueryDTO.setSearch(search);
+
+        Integer totalCount = questionExtMapper.countBySearch(questionQueryDTO);
+
+        if (totalCount % size == 0) {
+            totalPage = totalCount / size;
+        } else {
+            totalPage = totalCount / size + 1;
+        }
+
+        if (page < 1) {
+            page = 1;
+        }
+        if (page > totalPage) {
+            page = totalPage;
+        }
+
+        paginationDTO.setPage(totalCount,page,size);
+
+        Integer offset = size * (page - 1);
+        questionQueryDTO.setSize(size);
+        questionQueryDTO.setPage(offset);
+        List<Question> questions = questionExtMapper.selectBySearch(questionQueryDTO);
+        List<QuestionDTO> questionDTOList = new ArrayList<>();
+
+        for (Question question : questions) {
+            User user = userMapper.selectByPrimaryKey(question.getCreater());
+            QuestionDTO questionDTO = new QuestionDTO();
+            BeanUtils.copyProperties(question, questionDTO);
+            questionDTO.setUser(user);
+            questionDTOList.add(questionDTO);
+        }
+
+        paginationDTO.setData(questionDTOList);
+        return paginationDTO;
     }
 
     public PageDTO list(Long userID, Integer page, Integer size) {
